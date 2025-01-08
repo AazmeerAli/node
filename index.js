@@ -40,7 +40,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     console.log('FTP Directory:', listDir);
 
     // Upload file to FTP
-    await ftpClient.uploadFrom(req.file.buffer, `/public_html/uploads/${req.file.originalname}`);
+    await ftpClient.uploadFrom(req.file.buffer, `/uploads/${req.file.originalname}`);
     res.send('File uploaded successfully');
   } catch (err) {
     console.error('FTP Upload Error:', err);
