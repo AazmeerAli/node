@@ -1,57 +1,30 @@
-const express = require("express");
-const multer = require("multer");
-const path = require("path");
-const cors = require("cors"); // CORS package ko import karen
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+
 const app = express();
-const PORT = process.env.PORT || 5000;
+const port = 3000;
 
-// CORS ko allow karen (yahan pe specific origin bhi set kiya jaa sakta hai)
-app.use(cors({
-  origin: 'http://localhost:5173', // React frontend ka URL
-  methods: ['GET', 'POST'], // Allowed methods
-  allowedHeaders: ['Content-Type'], // Allowed headers
-}));
-
-// Multer setup for file storage
+// Multer setup to store files
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "uploads"));
+    cb(null, './uploads');  // Specify the folder where files should be stored
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  },
-});
-
-const upload = multer({ storage });
-
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-// File upload endpoint
-app.post("/upload", upload.single("file"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: "File not uploaded" });
+    cb(null, Date.now() + path.extname(file.originalname));  // File name will be current timestamp
   }
-  res.status(200).json({
-    message: "File uploaded successfully",
-    filePath: `/uploads/${req.file.filename}`,
-  });
 });
 
-// Fetch files endpoint
-app.get("/files", (req, res) => {
-  const fs = require("fs");
-  const filesPath = path.join(__dirname, "uploads");
+const upload = multer({ storage: storage });
 
-  fs.readdir(filesPath, (err, files) => {
-    if (err) {
-      return res.status(500).json({ message: "Unable to fetch files" });
-    }
-    const fileUrls = files.map((file) => `/uploads/${file}`);
-    res.status(200).json(fileUrls);
-  });
+// Post route to handle file upload
+app.post('/upload', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded');
+  }
+  res.send(`File uploaded successfully: ${req.file.filename}`);
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
 });
