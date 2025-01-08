@@ -1,36 +1,44 @@
 const express = require('express');
-const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
+const ftp = require('basic-ftp');
 
 const app = express();
 const port = 3000;
 
-// Enable CORS for all origins or specify your front-end URL
-app.use(cors({
-  origin: 'http://localhost:5173', // React app ka URL
-  methods: ['GET', 'POST'], // Allowed HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
-}));
-
-// Multer setup for file storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, './uploads'); // Specify folder for file upload
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Rename file
-  },
-});
-
+// Set up multer for file handling
+const storage = multer.memoryStorage(); // Store file in memory (for FTP upload)
 const upload = multer({ storage: storage });
 
+// FTP configuration
+const ftpClient = new ftp.Client();
+ftpClient.ftp.verbose = true; // Enable FTP logs for debugging
+
 // POST route for file upload
-app.post('/upload', upload.single('file'), (req, res) => {
+app.post('/upload', upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded');
   }
-  res.send({ filename: req.file.filename });
+
+  try {
+    // Connect to FTP server
+    await ftpClient.access({
+      host: 'ftp://threadnprint.com', // FTP server address (replace with your server's address)
+      user: 'u823128830', // FTP username
+      password: 'Legit@threadnprint1.com', // FTP password
+      secure: true, // Use secure FTP
+    });
+
+    // Upload file to FTP server
+    await ftpClient.uploadFrom(req.file.buffer, `/path/on/ftp/server/${req.file.originalname}`);
+
+    res.send('File uploaded successfully');
+  } catch (err) {
+    console.error('FTP Upload Error:', err);
+    res.status(500).send('Error uploading file to FTP server');
+  } finally {
+    ftpClient.close(); // Close FTP connection
+  }
 });
 
 // Server listen
