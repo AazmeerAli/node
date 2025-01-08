@@ -1,10 +1,14 @@
 const express = require('express');
+const cors = require('cors');  // Import CORS
 const multer = require('multer');
 const path = require('path');
 const ftp = require('basic-ftp');
 
 const app = express();
 const port = 3000;
+
+// Enable CORS for all origins
+app.use(cors()); // Allows all origins by default
 
 // Set up multer for file handling
 const storage = multer.memoryStorage(); // Store file in memory (for FTP upload)
@@ -24,8 +28,8 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     // Connect to FTP server
     await ftpClient.access({
       host: 'ftp://threadnprint.com', // FTP server address (replace with your server's address)
-      user: 'u823128830', // FTP username
-      password: 'Legit@threadnprint1.com', // FTP password
+      user: 'u823128830', // FTP username 
+      password: 'Legit@threadnprint1.com', // FTP password 
       secure: true, // Use secure FTP
     });
 
