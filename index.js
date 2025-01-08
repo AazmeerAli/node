@@ -24,7 +24,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   try {
     console.log("File received:", req.file); // Debugging
     await ftpClient.access({
-      host: 'ftp://threadnprint.com',
+      host: 'ftp://145.223.77.90',
       user: 'u823128830',
       password: 'Legit@threadnprint1.com',
       secure: true,
