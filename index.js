@@ -34,7 +34,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     });
 
     // Upload file to FTP server
-    await ftpClient.uploadFrom(req.file.buffer, `/path/on/ftp/server/${req.file.originalname}`);
+    await ftpClient.uploadFrom(req.file.buffer, `/uploads/${req.file.originalname}`);
 
     res.send('File uploaded successfully');
   } catch (err) {
