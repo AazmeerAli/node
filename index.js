@@ -1,8 +1,16 @@
 // server.js
 const express = require('express');
+const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const app = express();
+
+// Enable CORS for the frontend origin (http://localhost:5173)
+app.use(cors({
+  origin: 'http://localhost:5173', // Replace with your frontend URL
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'],
+}));
 
 // Multer storage setup to save files in 'uploads' folder inside 'public_html'
 const storage = multer.diskStorage({
