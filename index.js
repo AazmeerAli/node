@@ -6,16 +6,20 @@ const path = require('path');
 const app = express();
 const port = 3000;
 
-// Enable CORS for all origins
-app.use(cors());
+// Enable CORS for all origins or specify your front-end URL
+app.use(cors({
+  origin: 'http://localhost:5173', // React app ka URL
+  methods: ['GET', 'POST'], // Allowed HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+}));
 
 // Multer setup for file storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, './uploads');  // Folder to store files
+    cb(null, './uploads'); // Specify folder for file upload
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));  // File name with timestamp
+    cb(null, Date.now() + path.extname(file.originalname)); // Rename file
   },
 });
 
