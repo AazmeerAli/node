@@ -1,37 +1,104 @@
-// server.js
-const express = require('express');
-const cors = require('cors');
-const multer = require('multer');
-const path = require('path');
+// const express = require('express');
+// const multer = require('multer');
+// const cors = require('cors');
+// const fs = require('fs');
+// const { Readable } = require('stream');
+// const path = require('path');
+// const ftp = require('basic-ftp');
+
+// const app = express();
+
+// // CORS ko enable karna
+// app.use(cors());
+
+// // Multer setup for handling file uploads locally first
+// const storage = multer.memoryStorage(); // Store the file in memory
+// const upload = multer({ storage: storage });
+
+// // FTP connection settings for Hostinger
+// const ftpClient = new ftp.Client();
+// const FTP_HOST = "ftp.threadnprint.com";
+// const FTP_USER = "myuser";
+// const FTP_PASSWORD = "mypass";
+// const FTP_PORT = 21; // Standard FTP port
+
+// // Endpoint for uploading the file
+// app.post('/upload', upload.single('file'), async (req, res) => {
+//   if (!req.file) {
+//     return res.status(400).send('No file uploaded.');
+//   }
+
+//   try {
+//     // FTP connection
+//     await ftpClient.access({
+//       host: FTP_HOST,
+//       user: FTP_USER,
+//       password: FTP_PASSWORD,
+//       port: FTP_PORT,
+//     });
+
+//     // Check if the directory exists, and create it if it doesn't
+//     await ftpClient.ensureDir('/public_html/uploads'); // Ensures that the directory exists or creates it
+
+//     // Create a temporary file from the uploaded buffer
+//     const tempFilePath = path.join(__dirname, `${Date.now()}_${req.file.originalname}`);
+//     fs.writeFileSync(tempFilePath, req.file.buffer);
+
+//     // Upload the file to Hostinger's 'uploads' folder
+//     const remoteFilePath = `/public_html/uploads/${path.basename(tempFilePath)}`;
+//     await ftpClient.uploadFrom(tempFilePath, remoteFilePath);
+
+//     // Clean up the temporary file after uploading
+//     fs.unlinkSync(tempFilePath);
+
+//     res.status(200).send({ message: 'File uploaded successfully!', filePath: remoteFilePath });
+//   } catch (error) {
+//     console.error('Error uploading file:', error);
+//     res.status(500).send('File upload failed.');
+//   } finally {
+//     ftpClient.close();
+//   }
+// });
+
+// // Start the server
+// const port = 3000;
+// app.listen(port, () => {
+//   console.log(`Server running on http://localhost:${port}`);
+// });
+
+
+
+
+const express = require("express");
+const bodyParser = require("body-parser");
+const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+const cors = require("cors");
+
+cloudinary.config({
+  cloud_name: "dgt9l3mde",
+  api_key: "762846684321731",
+  api_secret: "atAPK7H-0SX47KO_1PxNnRiFzrA",
+});
+
 const app = express();
+const upload = multer();
 
-// Enable CORS for the frontend origin (http://localhost:5173)
-app.use(cors({
-  origin: 'http://localhost:5173', // Replace with your frontend URL
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
-}));
+app.use(cors()); // Allow frontend to access backend
+app.use(bodyParser.json());
 
-// Multer storage setup to save files in 'uploads' folder inside 'public_html'
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, 'public_html', 'uploads'));
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname)); // To avoid file name conflicts
-  }
+app.post("/upload", upload.single("file"), (req, res) => {
+  const file = req.file;
+
+  cloudinary.uploader
+    .upload_stream({ resource_type: "auto" }, (error, result) => {
+      if (error) {
+        return res.status(500).json({ error: "File upload failed" });
+      }
+      res.status(200).json({ url: result.secure_url });
+    })
+    .end(file.buffer);
 });
 
-const upload = multer({ storage: storage });
-
-app.post('/upload', upload.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).send('No file uploaded.');
-  }
-  res.status(200).send({ message: 'File uploaded successfully!', filePath: `/uploads/${req.file.filename}` });
-});
-
-const port = 3000;
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
